@@ -8,11 +8,12 @@ export async function getRecommendedUsers(req, res) {
 
     const recommendedUsers = await User.find({
       $and: [
-        { _id: { $ne: currentUserId } }, //exclude current user
-        { _id: { $nin: currentUser.friends } }, // exclude current user's friends
+        { _id: { $ne: currentUserId } },
+        { _id: { $nin: currentUser.friends } },
         { isOnboarded: true },
       ],
-    });
+    }, '-password'); // Exclude password field
+
     res.status(200).json(recommendedUsers);
   } catch (error) {
     console.error("Error in getRecommendedUsers controller", error.message);
@@ -58,7 +59,7 @@ export async function sendFriendRequest(req, res) {
         { sender: myId, recipient: recipientId },
         { sender: recipientId, recipient: myId },
       ],
-    });
+    },'-password');
 
     const friendRequest = await FriendRequest.create({
       sender: myId,
