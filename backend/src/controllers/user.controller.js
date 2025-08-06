@@ -40,6 +40,10 @@ export async function sendFriendRequest(req, res) {
     const myId = req.user.id;
     const { id: recipientId } = req.params;
 
+    if (!recipientId) {
+      return res.status(400).json({ message: "Recipient ID is required" });
+    }
+
     if (myId === recipientId) {
       return res.status(400).json({ message: "You can't send a friend request to yourself" });
     }
@@ -53,13 +57,25 @@ export async function sendFriendRequest(req, res) {
       return res.status(400).json({ message: "You are already friends with this user" });
     }
 
+    // Check if there's already a pending request
+    const existingRequest = await FriendRequest.findOne({
+      $or: [
+        { sender: myId, recipient: recipientId, status: "pending" },
+        { sender: recipientId, recipient: myId, status: "pending" },
+      ],
+    });
+
+    if (existingRequest) {
+      return res.status(400).json({ message: "Friend request already exists" });
+    }
+
     // delete any old request (rejected or accepted)
     await FriendRequest.deleteMany({
       $or: [
         { sender: myId, recipient: recipientId },
         { sender: recipientId, recipient: myId },
       ],
-    },'-password');
+    });
 
     const friendRequest = await FriendRequest.create({
       sender: myId,
@@ -121,7 +137,14 @@ export async function getFriendRequests(req, res) {
       status: "accepted",
     }).populate("recipient", "fullName profilePic");
 
-    res.status(200).json({ incomingReqs, acceptedReqs });
+    // Filter out requests where sender/recipient is null (deleted users)
+    const validIncomingReqs = incomingReqs.filter(request => request.sender !== null);
+    const validAcceptedReqs = acceptedReqs.filter(request => request.recipient !== null);
+
+    res.status(200).json({ 
+      incomingReqs: validIncomingReqs, 
+      acceptedReqs: validAcceptedReqs 
+    });
   } catch (error) {
     console.log("Error in getPendingFriendRequests controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
@@ -135,7 +158,10 @@ export async function getOutgoingFriendReqs(req, res) {
       status: "pending",
     }).populate("recipient", "fullName profilePic nativeLanguage learningLanguage");
 
-    res.status(200).json(outgoingRequests);
+    // Filter out requests where the recipient is null (deleted users)
+    const validOutgoingRequests = outgoingRequests.filter(request => request.recipient !== null);
+
+    res.status(200).json(validOutgoingRequests);
   } catch (error) {
     console.log("Error in getOutgoingFriendReqs controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
