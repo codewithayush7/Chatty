@@ -3,6 +3,7 @@ import useAuthUser from "../hooks/useAuthUser";
 import { BellIcon, LogOutIcon, ShipWheelIcon } from "lucide-react";
 import ThemeSelector from "./ThemeSelector";
 import useLogout from "../hooks/useLogout";
+import Avatar from "./Avatar";
 
 const Navbar = () => {
   const { authUser } = useAuthUser();
@@ -44,14 +45,14 @@ const Navbar = () => {
           {/* TODO */}
           <ThemeSelector />
 
-          <Link to="/profile" className="avatar cursor-pointer">
-            <div className="w-9 rounded-full">
-              <img
-                src={authUser?.profilePic || "/avatar.png"}
-                alt="User Avatar"
-                rel="noreferrer"
-              />
-            </div>
+          <Link to="/profile" className="cursor-pointer">
+            <Avatar
+              src={authUser?.profilePic}
+              userId={authUser?._id}
+              alt="User Avatar"
+              size="w-9 h-9"
+              fallbackSrc="/avatar.svg"
+            />
           </Link>
 
           {/* Logout button */}

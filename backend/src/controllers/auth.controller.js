@@ -25,15 +25,18 @@ export async function signup(req, res) {
       return res.status(400).json({ message: "Email already exists, please use a diffrent one" });
     }
 
-    const idx = Math.floor(Math.random() * 100) + 1; // generate a num between 1-100
-    const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
-
+    // Create new user first to get the ID
     const newUser = await User.create({
       email,
       fullName,
       password,
-      profilePic: randomAvatar,
+      profilePic: "", // Will be set after user creation
     });
+
+    // Generate Dicebear avatar using the user's ID
+    const avatarUrl = `https://api.dicebear.com/6.x/adventurer/svg?seed=${newUser._id}`;
+    newUser.profilePic = avatarUrl;
+    await newUser.save();
 
     try {
       await upsertStreamUser({

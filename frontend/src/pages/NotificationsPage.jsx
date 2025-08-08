@@ -11,6 +11,7 @@ import {
   UserCheckIcon,
 } from "lucide-react";
 import NoNotificationsFound from "../components/NoNotificationsFound";
+import Avatar from "../components/Avatar";
 
 const NotificationsPage = () => {
   const queryClient = useQueryClient();
@@ -72,14 +73,13 @@ const NotificationsPage = () => {
                       <div className="card-body p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="avatar w-14 h-14 rounded-full bg-base-300">
-                              <img
-                                src={
-                                  request.sender?.profilePic || "/avatar.png"
-                                }
-                                alt={request.sender?.fullName || "Unknown User"}
-                              />
-                            </div>
+                            <Avatar
+                              src={request.sender?.profilePic}
+                              userId={request.sender?._id}
+                              alt={request.sender?.fullName || "Unknown User"}
+                              size="w-14 h-14"
+                              fallbackSrc="/avatar.svg"
+                            />
                             <div>
                               <h3 className="font-semibold">
                                 {request.sender?.fullName || "Unknown User"}
@@ -139,18 +139,17 @@ const NotificationsPage = () => {
                       >
                         <div className="card-body p-4">
                           <div className="flex items-start gap-3">
-                            <div className="avatar mt-1 size-10 rounded-full">
-                              <img
-                                src={
-                                  notification.recipient?.profilePic ||
-                                  "/avatar.png"
-                                }
-                                alt={
-                                  notification.recipient?.fullName ||
-                                  "Unknown User"
-                                }
-                              />
-                            </div>
+                            <Avatar
+                              src={notification.recipient?.profilePic}
+                              userId={notification.recipient?._id}
+                              alt={
+                                notification.recipient?.fullName ||
+                                "Unknown User"
+                              }
+                              size="size-10"
+                              fallbackSrc="/avatar.svg"
+                              className="mt-1"
+                            />
                             <div className="flex-1">
                               <h3 className="font-semibold">
                                 {notification.recipient?.fullName ||
