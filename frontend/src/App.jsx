@@ -17,12 +17,23 @@ import useAuthUser from "./hooks/useAuthUser.js";
 import Layout from "./components/Layout.jsx";
 import { useThemeStore } from "./store/useThemeStore.js";
 
+import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
+
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
   const { theme } = useThemeStore();
 
   const isAuthenticated = Boolean(authUser);
+  const isEmailVerified = authUser?.isEmailVerified;
   const isOnboarded = authUser?.isOnboarded;
+
+  const authRedirect = !isAuthenticated
+    ? "/login"
+    : !isEmailVerified
+      ? "/verify-email"
+      : !isOnboarded
+        ? "/onboarding"
+        : "/";
 
   if (isLoading) return <PageLoader />;
 
@@ -32,54 +43,57 @@ const App = () => {
         <Route
           path="/"
           element={
-            isAuthenticated && isOnboarded ? (
+            isAuthenticated && isEmailVerified && isOnboarded ? (
               <Layout showSidebar={true}>
                 <HomePage />
               </Layout>
             ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+              <Navigate to={authRedirect} />
             )
           }
         />
         <Route
           path="/signup"
           element={
-            !isAuthenticated ? (
-              <SignUpPage />
-            ) : (
-              <Navigate to={isOnboarded ? "/" : "/onboarding"} />
-            )
+            !isAuthenticated ? <SignUpPage /> : <Navigate to={authRedirect} />
           }
         />
         <Route
+          path="/verify-email"
+          element={
+            isAuthenticated && !isEmailVerified ? (
+              <VerifyEmailPage />
+            ) : (
+              <Navigate to={authRedirect} />
+            )
+          }
+        />
+
+        <Route
           path="/login"
           element={
-            !isAuthenticated ? (
-              <LoginPage />
-            ) : (
-              <Navigate to={isOnboarded ? "/" : "/onboarding"} />
-            )
+            !isAuthenticated ? <LoginPage /> : <Navigate to={authRedirect} />
           }
         />
         <Route
           path="/notifications"
           element={
-            isAuthenticated && isOnboarded ? (
+            isAuthenticated && isEmailVerified && isOnboarded ? (
               <Layout showSidebar={true}>
                 <NotificationsPage />
               </Layout>
             ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+              <Navigate to={authRedirect} />
             )
           }
         />
         <Route
           path="/call/:id"
           element={
-            isAuthenticated && isOnboarded ? (
+            isAuthenticated && isEmailVerified && isOnboarded ? (
               <CallPage />
             ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+              <Navigate to={authRedirect} />
             )
           }
         />
@@ -87,12 +101,12 @@ const App = () => {
         <Route
           path="/chat/:id"
           element={
-            isAuthenticated && isOnboarded ? (
+            isAuthenticated && isEmailVerified && isOnboarded ? (
               <Layout showSidebar={false}>
                 <ChatPage />
               </Layout>
             ) : (
-              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+              <Navigate to={authRedirect} />
             )
           }
         />
@@ -101,7 +115,9 @@ const App = () => {
           path="/onboarding"
           element={
             isAuthenticated ? (
-              !isOnboarded ? (
+              !isEmailVerified ? (
+                <Navigate to="/verify-email" />
+              ) : !isOnboarded ? (
                 <OnboardingPage />
               ) : (
                 <Navigate to="/" />
@@ -112,8 +128,31 @@ const App = () => {
           }
         />
 
-        <Route path="/friends" element={<FriendsPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route
+          path="/friends"
+          element={
+            isAuthenticated && isEmailVerified && isOnboarded ? (
+              <Layout showSidebar={true}>
+                <FriendsPage />
+              </Layout>
+            ) : (
+              <Navigate to={authRedirect} />
+            )
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            isAuthenticated && isEmailVerified && isOnboarded ? (
+              <Layout showSidebar={true}>
+                <ProfilePage />
+              </Layout>
+            ) : (
+              <Navigate to={authRedirect} />
+            )
+          }
+        />
       </Routes>
 
       <Toaster />

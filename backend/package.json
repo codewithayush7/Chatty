@@ -21,6 +21,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.17.0",
     "mongoose": "^8.13.2",
+    "nodemailer": "^8.0.0",
+    "resend": "^6.9.1",
     "stream-chat": "^8.60.0"
   },
   "devDependencies": {

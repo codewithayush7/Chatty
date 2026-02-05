@@ -9,6 +9,17 @@ export const login = async (loginData) => {
   const response = await axiosInstance.post("/auth/login", loginData);
   return response.data;
 };
+
+export const verifyEmail = async (token) => {
+  const res = await axiosInstance.post("/auth/verify-email", { token });
+  return res.data;
+};
+
+export const resendVerificationEmail = async () => {
+  const res = await axiosInstance.post("/auth/resend-verification");
+  return res.data;
+};
+
 export const logout = async () => {
   const response = await axiosInstance.post("/auth/logout");
   return response.data;
@@ -55,12 +66,16 @@ export async function getFriendRequests() {
 }
 
 export async function acceptFriendRequest(requestId) {
-  const response = await axiosInstance.put(`/users/friend-request/${requestId}/accept`);
+  const response = await axiosInstance.put(
+    `/users/friend-request/${requestId}/accept`,
+  );
   return response.data;
 }
 
 export async function rejectFriendRequest(requestId) {
-  const response = await axiosInstance.delete(`/users/friend-request/${requestId}/reject`);
+  const response = await axiosInstance.delete(
+    `/users/friend-request/${requestId}/reject`,
+  );
   return response.data;
 }
 

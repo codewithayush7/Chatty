@@ -17,6 +17,13 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: String,
+    emailVerificationTokenExpires: Date,
+
     bio: {
       type: String,
       default: "",
@@ -48,7 +55,7 @@ const userSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 userSchema.pre("save", async function (next) {
@@ -64,7 +71,10 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
-  const isPasswordCorrect = await bcrypt.compare(enteredPassword, this.password);
+  const isPasswordCorrect = await bcrypt.compare(
+    enteredPassword,
+    this.password,
+  );
   return isPasswordCorrect;
 };
 
