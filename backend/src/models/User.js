@@ -23,6 +23,8 @@ const userSchema = new mongoose.Schema(
     },
     emailVerificationToken: String,
     emailVerificationTokenExpires: Date,
+    passwordResetToken: String,
+    passwordResetTokenExpires: Date,
 
     bio: {
       type: String,

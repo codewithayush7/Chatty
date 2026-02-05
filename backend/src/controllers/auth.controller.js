@@ -308,3 +308,99 @@ export const resendVerificationEmail = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+
+    // IMPORTANT: do NOT reveal if user exists
+    if (!user) {
+      return res.status(200).json({
+        message: "If the email exists, a reset link has been sent",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    user.passwordResetToken = hashedToken;
+    user.passwordResetTokenExpires = Date.now() + 15 * 60 * 1000; // 15 min
+    await user.save();
+
+    const CLIENT_URL =
+      process.env.NODE_ENV === "production"
+        ? process.env.FRONTEND_URL
+        : "http://localhost:5173";
+
+    const resetUrl = `${CLIENT_URL}/reset-password?token=${resetToken}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Reset your password - Chatty",
+      html: `
+        <h2>Password Reset</h2>
+        <p>Click the link below to reset your password:</p>
+        <a href="${resetUrl}">Reset Password</a>
+        <p>This link expires in 15 minutes.</p>
+      `,
+    });
+
+    res.status(200).json({
+      message: "If the email exists, a reset link has been sent",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ message: "Invalid request" });
+    }
+
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetTokenExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Token is invalid or expired",
+      });
+    }
+
+    user.password = password; // your pre-save hook will hash it
+    user.passwordResetToken = undefined;
+    user.passwordResetTokenExpires = undefined;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successful. Please login.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

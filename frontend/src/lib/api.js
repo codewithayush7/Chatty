@@ -5,11 +5,6 @@ export const signup = async (signupData) => {
   return response.data;
 };
 
-export const login = async (loginData) => {
-  const response = await axiosInstance.post("/auth/login", loginData);
-  return response.data;
-};
-
 export const verifyEmail = async (token) => {
   const res = await axiosInstance.post("/auth/verify-email", { token });
   return res.data;
@@ -17,6 +12,24 @@ export const verifyEmail = async (token) => {
 
 export const resendVerificationEmail = async () => {
   const res = await axiosInstance.post("/auth/resend-verification");
+  return res.data;
+};
+
+export const login = async (loginData) => {
+  const response = await axiosInstance.post("/auth/login", loginData);
+  return response.data;
+};
+
+export const forgotPassword = async (email) => {
+  const res = await axiosInstance.post("/auth/forgot-password", { email });
+  return res.data;
+};
+
+export const resetPassword = async ({ token, password }) => {
+  const res = await axiosInstance.post("/auth/reset-password", {
+    token,
+    password,
+  });
   return res.data;
 };
 

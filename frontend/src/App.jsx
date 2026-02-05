@@ -19,6 +19,9 @@ import { useThemeStore } from "./store/useThemeStore.js";
 
 import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
 
+import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
+
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
   const { theme } = useThemeStore();
@@ -75,6 +78,21 @@ const App = () => {
             !isAuthenticated ? <LoginPage /> : <Navigate to={authRedirect} />
           }
         />
+
+        <Route
+          path="/forgot-password"
+          element={
+            !isAuthenticated ? <ForgotPasswordPage /> : <Navigate to="/" />
+          }
+        />
+
+        <Route
+          path="/reset-password"
+          element={
+            !isAuthenticated ? <ResetPasswordPage /> : <Navigate to="/" />
+          }
+        />
+
         <Route
           path="/notifications"
           element={
