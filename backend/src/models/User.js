@@ -25,6 +25,8 @@ const userSchema = new mongoose.Schema(
     emailVerificationTokenExpires: Date,
     passwordResetToken: String,
     passwordResetTokenExpires: Date,
+    lastVerificationEmailSentAt: Date,
+    passwordChangedAt: Date,
 
     bio: {
       type: String,
@@ -66,6 +68,12 @@ userSchema.pre("save", async function (next) {
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
+
+    // Invalidate old JWTs
+    if (!this.isNew) {
+      this.passwordChangedAt = Date.now() - 1000;
+    }
+
     next();
   } catch (error) {
     next(error);

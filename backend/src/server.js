@@ -10,10 +10,7 @@ import userRoutes from "./routes/user.route.js";
 import chatRoutes from "./routes/chat.route.js";
 
 import { connectDB } from "./lib/db.js";
-import dns from "dns";
-
-// 🔥 FORCE IPv4 (critical for SMTP on Render)
-dns.setDefaultResultOrder("ipv4first");
+import { sendEmail } from "./lib/sendEmail.js";
 
 dotenv.config();
 
@@ -34,6 +31,16 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
+
+app.get("/test-email", async (req, res) => {
+  await sendEmail({
+    to: "any_email@gmail.com",
+    subject: "Brevo test",
+    html: "<h1>Brevo works 🎉</h1>",
+  });
+
+  res.send("Email sent");
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);

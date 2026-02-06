@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
-import { useSearchParams, Navigate } from "react-router";
+import { useEffect, useState, useRef } from "react";
+import { useSearchParams, Navigate, useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { verifyEmail, resendVerificationEmail } from "../lib/api";
 import useAuthUser from "../hooks/useAuthUser";
 import PageLoader from "../components/PageLoader";
 import toast from "react-hot-toast";
 
-const COOLDOWN_SECONDS = 30;
+const COOLDOWN_SECONDS = 60;
 
 const VerifyEmailPage = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const navigate = useNavigate();
 
   const queryClient = useQueryClient();
   const { authUser, isLoading } = useAuthUser();
@@ -18,15 +19,30 @@ const VerifyEmailPage = () => {
   // cooldown state
   const [cooldown, setCooldown] = useState(0);
 
+  // ✅ Track if we've already tried to verify
+  const hasVerifiedRef = useRef(false);
+
   const verifyMutation = useMutation({
     mutationFn: verifyEmail,
     onSuccess: async () => {
       toast.success("Email verified successfully 🎉");
+
+      // ✅ Invalidate and refetch
       await queryClient.invalidateQueries({ queryKey: ["authUser"] });
+
+      // ✅ Wait a bit for the state to update
+      setTimeout(() => {
+        const userData = queryClient.getQueryData(["authUser"]);
+        if (userData?.user?.isOnboarded) {
+          navigate("/", { replace: true });
+        } else {
+          navigate("/onboarding", { replace: true });
+        }
+      }, 300);
     },
     onError: (err) => {
       toast.error(
-        err?.response?.data?.message || "Invalid or expired verification link",
+        err?.response?.data?.message || "Verification failed. Try again.",
       );
     },
   });
@@ -42,12 +58,26 @@ const VerifyEmailPage = () => {
     },
   });
 
-  // verify once when token exists
+  // ✅ FIXED: verify once when token exists
   useEffect(() => {
-    if (!token) return;
-    if (verifyMutation.isPending || verifyMutation.isSuccess) return;
-    verifyMutation.mutate(token);
-  }, [token, verifyMutation]);
+    console.log("🔍 VerifyEmailPage useEffect triggered");
+    console.log("Token:", token);
+    console.log("Has verified ref:", hasVerifiedRef.current);
+
+    if (!token) {
+      console.log("❌ No token, skipping verification");
+      return;
+    }
+
+    if (hasVerifiedRef.current) {
+      console.log("❌ Already verified, skipping");
+      return;
+    }
+
+    console.log("✅ Calling verifyMutation.mutate with token:", token);
+    hasVerifiedRef.current = true;
+    verifyMutation.mutate({ token });
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // cooldown timer
   useEffect(() => {
@@ -58,10 +88,14 @@ const VerifyEmailPage = () => {
     return () => clearInterval(interval);
   }, [cooldown]);
 
-  if (isLoading) return <PageLoader />;
+  if (isLoading) {
+    console.log("⏳ Auth user loading...");
+    return <PageLoader />;
+  }
 
   // already verified → onboarding
   if (authUser?.isEmailVerified) {
+    console.log("✅ User already verified, redirecting");
     return <Navigate to={authUser.isOnboarded ? "/" : "/onboarding"} replace />;
   }
 
@@ -72,7 +106,7 @@ const VerifyEmailPage = () => {
           <>
             <h2 className="text-xl font-semibold">Verify your email</h2>
             <p className="opacity-70">
-              We’ve sent a verification link to your email.
+              We've sent a verification link to your email.
               <br />
               Please check your inbox.
             </p>

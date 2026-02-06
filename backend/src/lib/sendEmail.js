@@ -1,26 +1,29 @@
-import nodemailer from "nodemailer";
+import brevo from "@getbrevo/brevo";
+
+const apiInstance = new brevo.TransactionalEmailsApi();
+
+apiInstance.setApiKey(
+  brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY,
+);
 
 export const sendEmail = async ({ to, subject, html }) => {
-  const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: 587,
-    secure: false, // STARTTLS
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-
-    // 🔥 CRITICAL FIXES
-    family: 4, // force IPv4
-    tls: {
-      rejectUnauthorized: true,
-    },
-  });
-
-  await transporter.sendMail({
-    from: "Chatty <onboarding@resend.dev>",
-    to,
+  const sendSmtpEmail = {
+    to: [{ email: to }],
     subject,
-    html,
-  });
+    htmlContent: html,
+
+    // 👇 MUST exactly match a verified sender
+    sender: {
+      name: "Chatty",
+      email: "themidnightmind.ai@gmail.com",
+    },
+  };
+
+  try {
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
+  } catch (error) {
+    console.error("Brevo email error:", error?.response?.data || error.message);
+    throw new Error("Failed to send email");
+  }
 };

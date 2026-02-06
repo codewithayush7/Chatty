@@ -45,8 +45,9 @@ const ResetPasswordPage = () => {
         <h2 className="text-xl font-semibold text-center">Reset Password</h2>
 
         {error && (
-          <div className="alert alert-error">
-            {error.response?.data?.message || "Invalid or expired link"}
+          <div className="alert alert-error text-sm">
+            {error.response?.data?.message ||
+              "This reset link is invalid or has expired. Please request a new one."}
           </div>
         )}
 
@@ -69,7 +70,10 @@ const ResetPasswordPage = () => {
             required
           />
 
-          <button className="btn btn-primary w-full" disabled={isPending}>
+          <button
+            className="btn btn-primary w-full"
+            disabled={isPending || password.length < 6}
+          >
             {isPending ? "Resetting..." : "Reset Password"}
           </button>
         </form>

@@ -19,7 +19,7 @@ const ForgotPasswordPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutate(email);
+    mutate({ email });
   };
 
   return (
@@ -37,7 +37,10 @@ const ForgotPasswordPage = () => {
             required
           />
 
-          <button className="btn btn-primary w-full" disabled={isPending}>
+          <button
+            className="btn btn-primary w-full"
+            disabled={isPending || !email}
+          >
             {isPending ? "Sending..." : "Send reset link"}
           </button>
         </form>

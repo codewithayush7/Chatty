@@ -61,16 +61,7 @@ const App = () => {
             !isAuthenticated ? <SignUpPage /> : <Navigate to={authRedirect} />
           }
         />
-        <Route
-          path="/verify-email"
-          element={
-            isAuthenticated && !isEmailVerified ? (
-              <VerifyEmailPage />
-            ) : (
-              <Navigate to={authRedirect} />
-            )
-          }
-        />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         <Route
           path="/login"
