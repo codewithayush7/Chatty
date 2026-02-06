@@ -10,6 +10,10 @@ import userRoutes from "./routes/user.route.js";
 import chatRoutes from "./routes/chat.route.js";
 
 import { connectDB } from "./lib/db.js";
+import dns from "dns";
+
+// 🔥 FORCE IPv4 (critical for SMTP on Render)
+dns.setDefaultResultOrder("ipv4first");
 
 dotenv.config();
 
