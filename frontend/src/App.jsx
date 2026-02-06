@@ -43,24 +43,14 @@ const App = () => {
   return (
     <div className="h-screen" data-theme={theme}>
       <Routes>
-        <Route
-          path="/"
-          element={
-            isAuthenticated && isEmailVerified && isOnboarded ? (
-              <Layout showSidebar={true}>
-                <HomePage />
-              </Layout>
-            ) : (
-              <Navigate to={authRedirect} />
-            )
-          }
-        />
+        {/* PUBLIC ROUTES */}
         <Route
           path="/signup"
           element={
             !isAuthenticated ? <SignUpPage /> : <Navigate to={authRedirect} />
           }
         />
+
         <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         <Route
@@ -85,42 +75,6 @@ const App = () => {
         />
 
         <Route
-          path="/notifications"
-          element={
-            isAuthenticated && isEmailVerified && isOnboarded ? (
-              <Layout showSidebar={true}>
-                <NotificationsPage />
-              </Layout>
-            ) : (
-              <Navigate to={authRedirect} />
-            )
-          }
-        />
-        <Route
-          path="/call/:id"
-          element={
-            isAuthenticated && isEmailVerified && isOnboarded ? (
-              <CallPage />
-            ) : (
-              <Navigate to={authRedirect} />
-            )
-          }
-        />
-
-        <Route
-          path="/chat/:id"
-          element={
-            isAuthenticated && isEmailVerified && isOnboarded ? (
-              <Layout showSidebar={false}>
-                <ChatPage />
-              </Layout>
-            ) : (
-              <Navigate to={authRedirect} />
-            )
-          }
-        />
-
-        <Route
           path="/onboarding"
           element={
             isAuthenticated ? (
@@ -137,26 +91,40 @@ const App = () => {
           }
         />
 
+        {/* 🔐 PROTECTED ROUTES (WITH LAYOUT) */}
         <Route
-          path="/friends"
           element={
             isAuthenticated && isEmailVerified && isOnboarded ? (
-              <Layout showSidebar={true}>
-                <FriendsPage />
-              </Layout>
+              <Layout />
             ) : (
               <Navigate to={authRedirect} />
             )
           }
-        />
+        >
+          <Route path="/" element={<HomePage />} />
+          <Route path="/friends" element={<FriendsPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
 
+        {/* CALL & CHAT (NO SIDEBAR) */}
         <Route
-          path="/profile"
           element={
             isAuthenticated && isEmailVerified && isOnboarded ? (
-              <Layout showSidebar={true}>
-                <ProfilePage />
-              </Layout>
+              <Layout showSidebar={false} />
+            ) : (
+              <Navigate to={authRedirect} />
+            )
+          }
+        >
+          <Route path="/chat/:id" element={<ChatPage />} />
+        </Route>
+
+        <Route
+          path="/call/:id"
+          element={
+            isAuthenticated && isEmailVerified && isOnboarded ? (
+              <CallPage />
             ) : (
               <Navigate to={authRedirect} />
             )
