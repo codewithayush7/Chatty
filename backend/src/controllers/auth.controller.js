@@ -31,7 +31,7 @@ export async function signup(req, res) {
         .status(400)
         .json({ message: "Email already exists, please use a diffrent one" });
     }
-
+    console.log("STEP 1: request received");
     // 3️⃣ Create user
     const newUser = await User.create({
       email,
@@ -40,11 +40,13 @@ export async function signup(req, res) {
       profilePic: "",
       isEmailVerified: false,
     });
+    console.log("STEP 2: user created");
 
     // Generate Dicebear avatar using the user's ID
     const avatarUrl = `https://api.dicebear.com/6.x/adventurer/svg?seed=${newUser._id}`;
     newUser.profilePic = avatarUrl;
     await newUser.save();
+    console.log("STEP 3: avatar generated and user updated");
 
     // 5️⃣ Generate email verification token (RAW + HASHED)
     const verificationToken = crypto.randomBytes(32).toString("hex");
@@ -57,6 +59,7 @@ export async function signup(req, res) {
     newUser.emailVerificationTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
     await newUser.save();
+    console.log("STEP 4: user saved");
 
     try {
       await upsertStreamUser({
@@ -64,6 +67,7 @@ export async function signup(req, res) {
         name: newUser.fullName,
         image: newUser.profilePic || "",
       });
+      console.log("STEP 5: stream done");
       console.log(`Stream user created for ${newUser.fullName}`);
     } catch (error) {
       console.log("Error creating Stream user:", error);
@@ -77,6 +81,7 @@ export async function signup(req, res) {
 
     const verificationUrl = `${CLIENT_URL}/verify-email?token=${verificationToken}`;
 
+    console.log("STEP 6: before email");
     // 8️⃣ Send verification email
     await sendEmail({
       to: newUser.email,
@@ -92,6 +97,7 @@ export async function signup(req, res) {
         <p>This link will expire in 24 hours.</p>
       `,
     });
+    console.log("STEP 7: email sent");
 
     // 9️⃣ Issue JWT (limited access until verified)
     const token = jwt.sign(
@@ -99,7 +105,7 @@ export async function signup(req, res) {
       process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" },
     );
-
+    console.log("STEP 8: before cookie");
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
