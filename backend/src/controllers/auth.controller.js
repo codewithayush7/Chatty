@@ -83,20 +83,20 @@ export async function signup(req, res) {
 
     console.log("STEP 6: before email");
     // 8️⃣ Send verification email
-    // await sendEmail({
-    // to: newUser.email,
-    //   subject: "Verify your email - Chatty",
-    //   html: `
-    //     <h2>Welcome to Chatty 👋</h2>
-    //     <p>Thanks for signing up! Please verify your email to continue.</p>
-    //     <p>
-    //       <a href="${verificationUrl}" target="_blank" style="color:#6366f1;">
-    //         Verify Email
-    //       </a>
-    //     </p>
-    //     <p>This link will expire in 24 hours.</p>
-    //   `,
-    // });
+    await sendEmail({
+      to: newUser.email,
+      subject: "Verify your email - Chatty",
+      html: `
+        <h2>Welcome to Chatty 👋</h2>
+        <p>Thanks for signing up! Please verify your email to continue.</p>
+        <p>
+          <a href="${verificationUrl}" target="_blank" style="color:#6366f1;">
+            Verify Email
+          </a>
+        </p>
+        <p>This link will expire in 24 hours.</p>
+      `,
+    });
     console.log("EMAIL TEMP DISABLED");
 
     // 9️⃣ Issue JWT (limited access until verified)
