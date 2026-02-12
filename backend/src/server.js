@@ -46,8 +46,13 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
+app.get("/health", async (req, res) => {
+  try {
+    await mongoose.connection.db.admin().ping();
+    res.sendStatus(200);
+  } catch {
+    res.sendStatus(500);
+  }
 });
 
 if (process.env.NODE_ENV === "production") {
@@ -58,7 +63,15 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  connectDB();
+const server = app.listen(PORT, async () => {
+  console.log(`Server running on ${PORT}`);
+  await connectDB();
+});
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received. Closing server...");
+  server.close(() => {
+    console.log("Closed out remaining connections");
+    process.exit(0);
+  });
 });
