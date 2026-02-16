@@ -46,14 +46,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 
-app.get("/health", async (req, res) => {
-  try {
-    await mongoose.connection.db.admin().ping();
-    res.sendStatus(200);
-  } catch {
-    res.sendStatus(500);
-  }
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK" });
 });
+
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
@@ -63,10 +59,22 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-const server = app.listen(PORT, async () => {
-  console.log(`Server running on ${PORT}`);
-  await connectDB();
-});
+const startServer = async () => {
+  try {
+    await connectDB();
+    console.log("Database connected");
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
+
 
 process.on("SIGTERM", () => {
   console.log("SIGTERM received. Closing server...");
